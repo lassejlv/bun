@@ -209,12 +209,12 @@ pub fn NewSocketHandler(comptime is_ssl: bool) type {
             return @as(*NativeSocketHandleType(is_ssl), @ptrCast(us_socket_get_native_handle(comptime ssl_int, this.socket).?));
         }
 
-        pub inline fn fd(this: ThisSocket) i32 {
+        pub inline fn fd(this: ThisSocket) bun.FileDescriptor {
             if (comptime is_ssl) {
                 @compileError("SSL sockets do not have a file descriptor accessible this way");
             }
 
-            return @as(i32, @intCast(@intFromPtr(us_socket_get_native_handle(0, this.socket))));
+            return bun.toFD(@intFromPtr(us_socket_get_native_handle(0, this.socket)));
         }
 
         pub fn markNeedsMoreForSendfile(this: ThisSocket) void {
@@ -450,7 +450,7 @@ pub fn NewSocketHandler(comptime is_ssl: bool) type {
             this: *This,
             comptime socket_field_name: ?[]const u8,
         ) ?ThisSocket {
-            const socket_ = ThisSocket{ .socket = us_socket_from_fd(ctx, @sizeOf(*anyopaque), handle) orelse return null };
+            const socket_ = ThisSocket{ .socket = us_socket_from_fd(ctx, @sizeOf(*anyopaque), handle.int()) orelse return null };
 
             const holder = socket_.ext(*anyopaque) orelse {
                 if (comptime bun.Environment.allow_assert) unreachable;
