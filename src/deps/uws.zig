@@ -450,7 +450,7 @@ pub fn NewSocketHandler(comptime is_ssl: bool) type {
             this: *This,
             comptime socket_field_name: ?[]const u8,
         ) ?ThisSocket {
-            const socket_ = ThisSocket{ .socket = us_socket_from_fd(ctx, @sizeOf(*anyopaque), handle.int()) orelse return null };
+            const socket_ = ThisSocket{ .socket = us_socket_from_fd(ctx, @sizeOf(*anyopaque), handle.cast()) orelse return null };
 
             const holder = socket_.ext(*anyopaque) orelse {
                 if (comptime bun.Environment.allow_assert) unreachable;
@@ -1197,8 +1197,8 @@ pub const Poll = opaque {
         return us_poll_ext(self).?;
     }
 
-    pub fn fd(self: *Poll) @import("std").os.fd_t {
-        return @as(@import("std").os.fd_t, @intCast(us_poll_fd(self)));
+    pub fn fd(self: *Poll) std.os.fd_t {
+        return @intCast(us_poll_fd(self));
     }
 
     pub fn start(self: *Poll, loop: *Loop, flags: Flags) void {
@@ -2366,7 +2366,7 @@ pub const LIBUS_RECV_BUFFER_LENGTH = 524288;
 pub const LIBUS_TIMEOUT_GRANULARITY = @as(i32, 4);
 pub const LIBUS_RECV_BUFFER_PADDING = @as(i32, 32);
 pub const LIBUS_EXT_ALIGNMENT = @as(i32, 16);
-pub const LIBUS_SOCKET_DESCRIPTOR = i32;
+pub const LIBUS_SOCKET_DESCRIPTOR = std.os.fd_t;
 
 pub const _COMPRESSOR_MASK: i32 = 255;
 pub const _DECOMPRESSOR_MASK: i32 = 3840;
